@@ -71,12 +71,11 @@ public class MainActivity extends Activity {
         Intent intent = new Intent(this, MyService.class);
         startService(intent);
 
+        minimizeApp();
     }
 
 
     public final static int REQUEST_CODE = -1010101;
-    public static final int REQUEST_PERMISSION = 123;
-
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     public void checkDrawOverlayPermission() {
@@ -97,21 +96,11 @@ public class MainActivity extends Activity {
         }
     }
 
-
-    public void RequestPermission(Activity thisActivity, String Permission, int Code) {
-        if (ContextCompat.checkSelfPermission(thisActivity,
-                Permission) !=
-                PackageManager.PERMISSION_GRANTED) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(thisActivity,
-                    Permission)) {
-            } else {
-                ActivityCompat.requestPermissions(thisActivity,
-                        new String[]{
-                                Permission
-                        },
-                        Code);
-            }
-        }
+    protected void minimizeApp() {
+        Intent startMain = new Intent(Intent.ACTION_MAIN);
+        startMain.addCategory(Intent.CATEGORY_HOME);
+        startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(startMain);
     }
 
     @Override

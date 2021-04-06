@@ -7,11 +7,7 @@
 
     <uses-feature android:name="android.hardware.type.watch" />
 
-    <!--<uses-permission android:name="android.permission.CALL_PHONE" />-->
-    <!--<uses-permission android:name="android.permission.GET_TASKS" />-->
-
-    <!--<uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" />-->
-
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />
     <uses-permission android:name="android.permission.ACTION_MANAGE_OVERLAY_PERMISSION" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
@@ -25,7 +21,8 @@
         android:theme="@style/Theme.Ussd19">
 
 
-         <activity android:name=".MainActivity">
+         <!--<activity android:name=".MainActivity" android:theme="@style/Theme.Transparent">-->
+        <activity android:name=".MainActivity" android:theme="@android:style/Theme.Translucent">
              <intent-filter>
                  <action android:name="android.intent.action.MAIN" />
 

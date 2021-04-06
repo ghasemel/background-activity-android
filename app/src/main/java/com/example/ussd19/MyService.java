@@ -2,6 +2,7 @@ package com.example.ussd19;
 
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.app.usage.UsageEvents;
 import android.app.usage.UsageStats;
@@ -18,17 +19,24 @@ import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static com.example.ussd19.AndroidUtils.getRecentActivity;
+import static com.example.ussd19.AndroidUtils.getRecentApps;
+
 public class MyService extends Service {
 
     public Context context = this;
-
+    private static final int NOTIF_ID = 1;
+    private static final String NOTIF_CHANNEL_ID = "Channel_Id";
 
 
     @Nullable
@@ -40,8 +48,6 @@ public class MyService extends Service {
     @Override
     public void onCreate() {
         Toast.makeText(this, "Service created!", Toast.LENGTH_LONG).show();
-
-        //handler = new Handler();
     }
 
     @Override
@@ -53,92 +59,27 @@ public class MyService extends Service {
             public void run() {
                 //Toast.makeText(context, "Service is still running", Toast.LENGTH_LONG).show();
                 Log.i("raouf:****app", getRecentApps(context));
-                Log.i("raouf:****activity", getRecentActivity(context));
+                Log.i("raouf:****activity", String.join(",", getRecentActivity(context)));
             }
-        }, 0, 5, TimeUnit.SECONDS);
+        }, 0, 50, TimeUnit.MILLISECONDS);
 
 
         return super.onStartCommand(intent, flags, startId);
     }
 
-    public static String getRecentApps(Context context) {
-        String topPackageName = "";
+    private void startForeground() {
+        Intent notificationIntent = new Intent(this, MainActivity.class);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            UsageStatsManager mUsageStatsManager = (UsageStatsManager) context.getSystemService(Context.USAGE_STATS_SERVICE);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
+                notificationIntent, 0);
 
-            long time = System.currentTimeMillis();
-
-            UsageEvents usageEvents = mUsageStatsManager.queryEvents(time - 1000 * 30, System.currentTimeMillis() + (10 * 1000));
-            UsageEvents.Event event = new UsageEvents.Event();
-            while (usageEvents.hasNextEvent()) {
-                usageEvents.getNextEvent(event);
-            }
-
-            if (event != null && !TextUtils.isEmpty(event.getPackageName()) && event.getEventType() == UsageEvents.Event.MOVE_TO_FOREGROUND) {
-                if (AndroidUtils.isRecentActivity(event.getClassName())) {
-                    return event.getClassName();
-                }
-                return event.getPackageName();
-            } else {
-                topPackageName = "";
-            }
-        } else {
-            ActivityManager am = (ActivityManager) context.getSystemService(context.ACTIVITY_SERVICE);
-            List<ActivityManager.RunningTaskInfo> taskInfo = am.getRunningTasks(1);
-            ComponentName componentInfo = taskInfo.get(0).topActivity;
-
-            if (AndroidUtils.isRecentActivity(componentInfo.getClassName())) {
-                return componentInfo.getClassName();
-            }
-
-            topPackageName = componentInfo.getPackageName();
-        }
-
-
-        return topPackageName;
-    }
-
-    public static String getRecentActivity(Context context) {
-        String topActivityName = "";
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            UsageStatsManager mUsageStatsManager = (UsageStatsManager) context.getSystemService(Context.USAGE_STATS_SERVICE);
-
-            long time = System.currentTimeMillis();
-
-            UsageEvents usageEvents = mUsageStatsManager.queryEvents(time - 1000 * 30, System.currentTimeMillis() + (10 * 1000));
-            UsageEvents.Event event = new UsageEvents.Event();
-            while (usageEvents.hasNextEvent()) {
-                usageEvents.getNextEvent(event);
-            }
-
-            if (event != null && !TextUtils.isEmpty(event.getPackageName()) && event.getEventType() == UsageEvents.Event.MOVE_TO_FOREGROUND) {
-                return event.getClassName();
-            } else {
-                topActivityName = "";
-            }
-        } else {
-            ActivityManager am = (ActivityManager) context.getSystemService(context.ACTIVITY_SERVICE);
-            List<ActivityManager.RunningTaskInfo> taskInfo = am.getRunningTasks(1);
-            ComponentName componentInfo = taskInfo.get(0).topActivity;
-
-            topActivityName = componentInfo.getClassName();
-        }
-
-
-        return topActivityName;
-    }
-
-    public static List<UsageStats> getUsageStatsList(Context context){
-        UsageStatsManager usm = (UsageStatsManager) context.getSystemService(USAGE_STATS_SERVICE);
-        Calendar calendar = Calendar.getInstance();
-        long endTime = calendar.getTimeInMillis();
-        calendar.add(Calendar.DATE, -1);
-        long startTime = calendar.getTimeInMillis();
-
-        List<UsageStats> usageStatsList = usm.queryUsageStats(UsageStatsManager.INTERVAL_DAILY,startTime,endTime);
-
-        return usageStatsList;
+        startForeground(NOTIF_ID, new NotificationCompat.Builder(this,
+                NOTIF_CHANNEL_ID) // don't forget create a notification channel first
+                .setOngoing(true)
+                .setSmallIcon(R.drawable.ic_launcher_background)
+                .setContentTitle(getString(R.string.app_name))
+                .setContentText("Service is running background")
+                .setContentIntent(pendingIntent)
+                .build());
     }
 }
