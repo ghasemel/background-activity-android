@@ -1,7 +1,9 @@
 package com.example.ussd19;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.app.Activity;
@@ -12,8 +14,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
@@ -29,65 +34,83 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        //setContentView(R.layout.activity_main);
 
-       /* //Ussd2.ussdRequestResponse(this);
-        ActivityManager activityManager = (ActivityManager) this.getSystemService( ACTIVITY_SERVICE );
-        List<ActivityManager.RunningAppProcessInfo> procInfos = activityManager.getRunningAppProcesses();
-        for(int i = 0; i < procInfos.size(); i++){
-            Log.i("raouf****", "processName: " + procInfos.get(i).processName);
-            if(procInfos.get(i).processName.equals("com.android.browser")) {
-                Toast.makeText(getApplicationContext(), "Browser is running", Toast.LENGTH_LONG).show();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Log.v("App", "Build Version Greater than or equal to M: " + Build.VERSION_CODES.M);
+            checkDrawOverlayPermission();
+        } else {
+            Log.v("App", "OS Version Less than M");
+            //No need for Permission as less then M OS.
+        }
+
+
+       /* if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            if (getUsageStatsList(getApplicationContext()).isEmpty()) {
+
+                Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
+                startActivity(intent);
             }
-        }
-
-
-        ActivityManager am = (ActivityManager)this.getSystemService(Context.ACTIVITY_SERVICE);
-        List<ActivityManager.RunningTaskInfo> runningTasks = am.getRunningTasks(100);
-        for(int i = 0; i < runningTasks.size(); i++){
-            Log.i("raouf2****", "processName: " + runningTasks.get(i).topActivity.getClassName());
-        }
-
-        //ComponentName cn = am.getRunningTasks(1).get(0).topActivity;
-
-
-
-       // ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-        List<ActivityManager.AppTask> tasks = activityManager.getAppTasks();
-
-        for (ActivityManager.AppTask task : tasks) {
-            Log.d("raouf3****", "stackId: " + task.getTaskInfo().baseActivity.getClassName());
         }*/
+        AppOpsManager appOps = (AppOpsManager) this.getSystemService(Context.APP_OPS_SERVICE);
+        int mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), this.getPackageName());
 
+        boolean granted;
+        if (mode == AppOpsManager.MODE_DEFAULT) {
+            granted = (this.checkCallingOrSelfPermission(android.Manifest.permission.PACKAGE_USAGE_STATS) == PackageManager.PERMISSION_GRANTED);
+        } else {
+            granted = (mode == AppOpsManager.MODE_ALLOWED);
+        }
 
-        //if (checkForPermission(this)) {
+        if (!granted) {
+            Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS,
+                    Uri.parse("package:" + getApplicationContext().getPackageName()));
+            startActivityForResult(intent, REQUEST_CODE);
+        }
 
-       // }
-        findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (ActivityCompat.checkSelfPermission(view.getContext(), Manifest.permission.PACKAGE_USAGE_STATS) != PackageManager.PERMISSION_GRANTED) {
-                    requestPermissions(new String[]{Manifest.permission.PACKAGE_USAGE_STATS}, 0);
-                }
-
-                Intent intent = new Intent(view.getContext(), MyService.class);
-                startService(intent);
-            }
-        });
+        Intent intent = new Intent(this, MyService.class);
+        startService(intent);
 
     }
 
 
-    private boolean checkForPermission(Context context) {
-        try {
-            PackageManager packageManager = context.getPackageManager();
-            ApplicationInfo applicationInfo = packageManager.getApplicationInfo(context.getPackageName(), 0);
-            AppOpsManager appOpsManager = (AppOpsManager) context.getSystemService(Context.APP_OPS_SERVICE);
-            int mode = appOpsManager.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, applicationInfo.uid, applicationInfo.packageName);
-            return (mode == AppOpsManager.MODE_ALLOWED);
+    public final static int REQUEST_CODE = -1010101;
+    public static final int REQUEST_PERMISSION = 123;
 
-        } catch (PackageManager.NameNotFoundException e) {
-            return false;
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public void checkDrawOverlayPermission() {
+        Log.v("App", "Package Name: " + getApplicationContext().getPackageName());
+
+        // Check if we already  have permission to draw over other apps
+        if (!Settings.canDrawOverlays(this)) {
+            Log.v("App", "Requesting Permission" + Settings.canDrawOverlays(this));
+            // if not construct intent to request permission
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + getApplicationContext().getPackageName()));
+            // request permission via start activity for result
+            startActivityForResult(intent, REQUEST_CODE); //It will call onActivityResult Function After you press Yes/No and go Back after giving permission
+        } else {
+            Log.v("App", "We already have permission for it.");
+            // disablePullNotificationTouch();
+            // Do your stuff, we got permission captain
+        }
+    }
+
+
+    public void RequestPermission(Activity thisActivity, String Permission, int Code) {
+        if (ContextCompat.checkSelfPermission(thisActivity,
+                Permission) !=
+                PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(thisActivity,
+                    Permission)) {
+            } else {
+                ActivityCompat.requestPermissions(thisActivity,
+                        new String[]{
+                                Permission
+                        },
+                        Code);
+            }
         }
     }
 
