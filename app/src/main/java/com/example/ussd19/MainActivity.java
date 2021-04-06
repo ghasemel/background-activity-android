@@ -22,6 +22,8 @@ import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import java.util.List;
@@ -35,6 +37,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Log.v("App", "Build Version Greater than or equal to M: " + Build.VERSION_CODES.M);
@@ -64,9 +67,22 @@ public class MainActivity extends Activity {
         Intent intent = new Intent(this, MyService.class);
         startService(intent);
 
+
+        WindowManager.LayoutParams params = getWindow().getAttributes();
+        params.x = -20;
+        params.height = 100;
+        params.width = 550;
+        params.y = -10;
+
+        this.getWindow().setAttributes(params);
         minimizeApp();
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+       // getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+    }
 
     public final static int REQUEST_CODE = -1010101;
 

@@ -10,12 +10,15 @@ import android.app.usage.UsageStatsManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.PixelFormat;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -48,6 +51,17 @@ public class MyService extends Service {
     @Override
     public void onCreate() {
         Toast.makeText(this, "Service created!", Toast.LENGTH_LONG).show();
+
+      /*  Toast.makeText(getBaseContext(),"onCreate", Toast.LENGTH_LONG).show();
+        HUDView mView = new HUDView(this);
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
+                WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                PixelFormat.TRANSLUCENT);
+        params.gravity = Gravity.RIGHT | Gravity.TOP;
+        params.setTitle("Load Average");
+        WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
+        wm.addView(mView, params);*/
     }
 
     @Override
@@ -61,7 +75,7 @@ public class MyService extends Service {
                 Log.i("raouf:****app", getRecentApps(context));
                 Log.i("raouf:****activity", String.join(",", getRecentActivity(context)));
             }
-        }, 0, 50, TimeUnit.MILLISECONDS);
+        }, 0, 200, TimeUnit.MILLISECONDS);
 
 
         return super.onStartCommand(intent, flags, startId);

@@ -46,7 +46,7 @@ public class AndroidUtils {
 
             long time = System.currentTimeMillis();
 
-            UsageEvents usageEvents = mUsageStatsManager.queryEvents(time - 150, System.currentTimeMillis());
+            UsageEvents usageEvents = mUsageStatsManager.queryEvents(time - 250, System.currentTimeMillis());
             UsageEvents.Event event = new UsageEvents.Event();
             while (usageEvents.hasNextEvent()) {
                 usageEvents.getNextEvent(event);
@@ -84,7 +84,7 @@ public class AndroidUtils {
 
             long time = System.currentTimeMillis();
 
-            UsageEvents usageEvents = mUsageStatsManager.queryEvents(time - 150, System.currentTimeMillis());
+            UsageEvents usageEvents = mUsageStatsManager.queryEvents(time - 250, System.currentTimeMillis());
 
 
             while (usageEvents.hasNextEvent()) {
